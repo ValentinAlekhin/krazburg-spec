@@ -80,7 +80,12 @@ try {
   await page.locator('main h1').waitFor();
   assert.equal(await page.locator('a[href*="/guide/"], a[href*="/research/"], a[href*="/internal/"]').count(), 0,
     'В навигацию заказчика попали внутренние материалы.');
-  await page.goto(`${origin}${architecture}`, { waitUntil: 'networkidle' });
+  await page.goto(`${origin}${architecture}#p-7-3-1`, { waitUntil: 'networkidle' });
+  const backupPoint = page.locator('#p-7-3-1');
+  await backupPoint.waitFor();
+  assert.match(await backupPoint.textContent(), /^7\.3\.1\./, 'Нумерация пункта не отображается.');
+  assert.equal(await backupPoint.locator('.header-anchor').getAttribute('href'), '#p-7-3-1',
+    'Заголовок должен содержать прямую ссылку на пункт.');
   await waitForDiagram();
   const zoom = page.locator('.mermaid-container .zoom-level:visible').first();
   const beforeZoom = await zoom.textContent();
