@@ -21,7 +21,8 @@ export default defineConfig({
       { text: '1. О проекте', link: '/project/overview' },
       { text: '2. Конструктор', link: '/spec/constructor' },
       { text: '7. Архитектура', link: '/spec/architecture' },
-      { text: '9. Вопросы', link: '/project/questions' },
+      { text: '6. CMS', link: '/spec/admin' },
+      { text: '9. Для переноса', link: '/project/questions' },
     ],
     sidebar: [
       { text: 'Начало', items: [
@@ -31,12 +32,12 @@ export default defineConfig({
       { text: 'Техническое задание', items: [
         { text: '2. Конструктор', link: '/spec/constructor' },
         { text: '3. Расчёт материалов', link: '/spec/calculation' },
-        { text: '4. Каталог и готовые комплекты', link: '/spec/catalog' },
-        { text: '5. Заявки', link: '/spec/leads' },
-        { text: '6. Работа сотрудников', link: '/spec/admin' },
+        { text: '4. Каталог и параметры конструктора', link: '/spec/catalog' },
+        { text: '5. Расчёты, заказы и оплата', link: '/spec/leads' },
+        { text: '6. CMS и управление сайтом', link: '/spec/admin' },
         { text: '7. Архитектура и эксплуатация', link: '/spec/architecture' },
         { text: '8. Приёмка', link: '/spec/acceptance' },
-        { text: '9. Вопросы для согласования', link: '/project/questions' },
+        { text: '9. Материалы и решения для переноса', link: '/project/questions' },
       ] },
     ],
     outline: { level: [2, 3], label: 'На этой странице' },

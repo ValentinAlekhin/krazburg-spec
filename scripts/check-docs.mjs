@@ -78,6 +78,9 @@ try {
 
   await page.goto(`${origin}${base}`, { waitUntil: 'networkidle' });
   await page.locator('main h1').waitFor();
+  const cover = await page.locator('main').innerText();
+  assert.match(cover, /CMS Strapi/, 'Основной объём должен включать CMS Strapi.');
+  assert.match(cover, /Ozon Pay/, 'Действующая оплата должна входить в проект.');
   assert.equal(await page.locator('a[href*="/guide/"], a[href*="/research/"], a[href*="/internal/"]').count(), 0,
     'В навигацию заказчика попали внутренние материалы.');
   await page.goto(`${origin}${architecture}#p-7-3-1`, { waitUntil: 'networkidle' });
@@ -120,6 +123,17 @@ try {
   assert.ok(searchResults.every((href) => new URL(href, origin).pathname.startsWith(base)), 'Поиск потерял путь публикации.');
   await page.keyboard.press('Escape');
   await page.locator('.VPLocalSearchBox').waitFor({ state: 'hidden' });
+
+  await page.goto(`${origin}${base}spec/admin.html`, { waitUntil: 'networkidle' });
+  await page.locator('#p-6-1-3').waitFor();
+  assert.match(await page.locator('main h1').textContent(), /CMS/, 'Нужен раздел управления через CMS.');
+  await page.goto(`${origin}${base}spec/leads.html`, { waitUntil: 'networkidle' });
+  await page.locator('#p-5-2-2').waitFor();
+  assert.match(await page.locator('#p-5-2-2').textContent(), /Ozon Pay/);
+  await waitForDiagram();
+  assert.equal(await page.locator('.diagram-error').count(), 0, 'Схема оформления заказа не отобразилась.');
+  await page.goto(`${origin}${architecture}`, { waitUntil: 'networkidle' });
+  await waitForDiagram();
 
   await mkdir(artifacts, { recursive: true });
   await page.screenshot({ path: path.join(artifacts, 'desktop.png'), fullPage: true, animations: 'disabled' });
