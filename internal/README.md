@@ -8,4 +8,8 @@
 - [Восстановленные расчёты](research/calculation-audit.md).
 - [Интерфейс и сценарии прототипа](research/interface-audit.md).
 - [Структура данных и полнота кэша](research/data-audit.md).
+- [Работающий сайт: страницы и данные](research/live-content-audit.md).
+- [Работающий конструктор: сценарии](research/live-interface-audit.md).
+- [Сохранённый расчёт и Ozon Pay](research/live-checkout-audit.md).
+- [Уточнения ТЗ по результатам проверки](research/spec-gap-map.md).
 - [Референсы DNS и IKEA](research/references.md).
