@@ -15,6 +15,16 @@ const published = await readdir(dist);
 for (const internal of ['guide', 'research', 'internal']) {
   assert.equal(published.includes(internal), false, `В публикацию попал внутренний раздел: ${internal}`);
 }
+for (const removed of [
+  'project/questions.html', 'spec/mockups.html', 'preview/constructor.html',
+  'spec/constructor.html', 'spec/calculation.html', 'spec/catalog.html', 'spec/leads.html',
+]) {
+  const exists = await access(path.join(dist, removed)).then(() => true, (error) => {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  });
+  assert.equal(exists, false, `Удалённый раздел остался в сборке: ${removed}`);
+}
 
 const mime = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
@@ -62,7 +72,7 @@ try {
   page.on('response', (response) => { if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
   const origin = `http://127.0.0.1:${server.address().port}`;
   const architecture = `${base}spec/architecture.html`;
-  const constructor = `${base}spec/constructor.html`;
+  const overview = `${base}project/overview.html`;
   const diagramSelector = '.mermaid-container .mermaid svg';
   async function waitForDiagram() {
     // Renderer replaces the original fence node. Scroll inside one JS task,
@@ -79,15 +89,15 @@ try {
   await page.goto(`${origin}${base}`, { waitUntil: 'networkidle' });
   await page.locator('main h1').waitFor();
   const cover = await page.locator('main').innerText();
-  assert.match(cover, /CMS Strapi/, 'Основной объём должен включать CMS Strapi.');
-  assert.match(cover, /Ozon Pay/, 'Действующая оплата должна входить в проект.');
+  assert.match(cover, /Strapi/, 'Основной объём должен включать админку Strapi.');
+  assert.match(cover, /Nuxt/, 'Основной объём должен включать сайт на Nuxt.');
   assert.equal(await page.locator('a[href*="/guide/"], a[href*="/research/"], a[href*="/internal/"]').count(), 0,
     'В навигацию заказчика попали внутренние материалы.');
-  await page.goto(`${origin}${architecture}#p-7-3-1`, { waitUntil: 'networkidle' });
-  const backupPoint = page.locator('#p-7-3-1');
+  await page.goto(`${origin}${architecture}#p-3-5`, { waitUntil: 'networkidle' });
+  const backupPoint = page.locator('#p-3-5');
   await backupPoint.waitFor();
-  assert.match(await backupPoint.textContent(), /^7\.3\.1\./, 'Нумерация пункта не отображается.');
-  assert.equal(await backupPoint.locator('.header-anchor').getAttribute('href'), '#p-7-3-1',
+  assert.match(await backupPoint.textContent(), /^3\.5\./, 'Нумерация пункта не отображается.');
+  assert.equal(await backupPoint.locator('.header-anchor').getAttribute('href'), '#p-3-5',
     'Заголовок должен содержать прямую ссылку на пункт.');
   await waitForDiagram();
   const zoom = page.locator('.mermaid-container .zoom-level:visible').first();
@@ -105,8 +115,8 @@ try {
   await page.locator(diagramSelector).first().waitFor();
 
   // VitePress client navigation must initialise diagrams again.
-  await page.locator(`a[href="${constructor}"]:visible`).first().click();
-  await page.waitForURL(`**${constructor}`);
+  await page.locator(`a[href="${overview}"]:visible`).first().click();
+  await page.waitForURL(`**${overview}`);
   await page.locator(`a[href="${architecture}"]:visible`).first().click();
   await page.waitForURL(`**${architecture}`);
   await waitForDiagram();
@@ -117,7 +127,7 @@ try {
   await page.locator('.mermaid-container.dialog-fullscreen-active').waitFor({ state: 'hidden' });
 
   await page.locator('.VPNavBarSearch button').first().click();
-  await page.locator('#localsearch-input').fill('конструктор');
+  await page.locator('#localsearch-input').fill('админка');
   await page.locator('.VPLocalSearchBox a.result').first().waitFor();
   const searchResults = await page.locator('.VPLocalSearchBox a.result').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
   assert.ok(searchResults.every((href) => new URL(href, origin).pathname.startsWith(base)), 'Поиск потерял путь публикации.');
@@ -125,13 +135,21 @@ try {
   await page.locator('.VPLocalSearchBox').waitFor({ state: 'hidden' });
 
   await page.goto(`${origin}${base}spec/admin.html`, { waitUntil: 'networkidle' });
-  await page.locator('#p-6-1-3').waitFor();
-  assert.match(await page.locator('main h1').textContent(), /CMS/, 'Нужен раздел управления через CMS.');
-  await page.goto(`${origin}${base}spec/leads.html`, { waitUntil: 'networkidle' });
-  await page.locator('#p-5-2-2').waitFor();
-  assert.match(await page.locator('#p-5-2-2').textContent(), /Ozon Pay/);
-  await waitForDiagram();
-  assert.equal(await page.locator('.diagram-error').count(), 0, 'Схема оформления заказа не отобразилась.');
+  await page.locator('#p-2-3').waitFor();
+  assert.match(await page.locator('main h1').textContent(), /Админка Strapi/, 'Нужен раздел управления через Strapi.');
+  await page.goto(`${origin}${overview}`, { waitUntil: 'networkidle' });
+  await page.locator('#p-1-1').waitFor();
+  assert.match(await page.locator('main').innerText(), /Ozon Pay/, 'Действующая оплата должна сохраняться.');
+
+  await page.goto(`${origin}${base}project/payment-and-timeline.html`, { waitUntil: 'networkidle' });
+  await page.locator('#p-5-4-2').waitFor();
+  assert.match(await page.locator('main h1').textContent(), /Оплата и сроки/);
+  const terms = (await page.locator('main').innerText()).replace(/\s/g, '');
+  assert.ok(terms.includes('150000₽') && terms.includes('75000₽') && terms.includes('30календарныхдней'),
+    'Стоимость, платежи и гарантийный период не отображаются.');
+  assert.ok(!terms.includes('часов') && !terms.includes('₽/час') && !terms.includes('10–12недель'),
+    'В коммерческом разделе осталась прежняя оценка.');
+
   await page.goto(`${origin}${architecture}`, { waitUntil: 'networkidle' });
   await waitForDiagram();
 
